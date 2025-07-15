@@ -1,0 +1,336 @@
+ได้เลยครับ! นี่คือโค้ด HTML, CSS และ JavaScript รวมกันในไฟล์เดียว พร้อม UI ที่ปรับแต่งแล้วตามที่ขอ:
+
+```html
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<title>จัดการ Devices และ Readings</title>
+<style>
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f7fa;
+    margin: 0;
+    padding: 20px 0 40px;
+  }
+  h2 {
+    text-align: center;
+    color: #2e8b57;
+    margin-bottom: 10px;
+    font-weight: 700;
+    text-shadow: 1px 1px 2px #b0c4b7;
+  }
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 90%;
+    margin: 20px auto 40px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.15);
+    overflow: hidden;
+  }
+  caption {
+    font-weight: 700;
+    font-size: 1.3em;
+    padding: 12px 0;
+    color: #2e8b57;
+    background: #e6f2ea;
+    text-align: center;
+  }
+  thead tr {
+    background: #2e8b57;
+    color: white;
+    font-weight: 600;
+  }
+  th, td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: left;
+    vertical-align: middle;
+  }
+  tbody tr:nth-child(even) {
+    background-color: #f9faf9;
+  }
+  tbody tr:hover {
+    background-color: #d1f0d6;
+    transition: background-color 0.3s ease;
+  }
+  tfoot tr {
+    background: #f0f6f0;
+  }
+  input[type="text"],
+  input[type="number"],
+  input[type="date"] {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #b0c4b7;
+    box-sizing: border-box;
+    font-size: 0.95em;
+    transition: border-color 0.3s ease;
+  }
+  input[type="text"]:focus,
+  input[type="number"]:focus,
+  input[type="date"]:focus {
+    outline: none;
+    border-color: #2e8b57;
+    box-shadow: 0 0 5px rgba(46, 139, 87, 0.4);
+  }
+  button {
+    background-color: #2e8b57;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.95em;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #256d45;
+  }
+  td[contenteditable="true"] {
+    background-color: #fff9e6;
+    border-radius: 4px;
+    padding: 10px 12px;
+  }
+  td[contenteditable="true"]:focus {
+    outline: 2px solid #2e8b57;
+    background-color: #e6f2ea;
+  }
+  @media (max-width: 768px) {
+    table, thead, tbody, th, td, tr {
+      font-size: 14px;
+    }
+    th, td {
+      padding: 10px 8px;
+    }
+    button {
+      padding: 6px 12px;
+      font-size: 0.9em;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h2>จัดการ Devices</h2>
+<table id="deviceTable">
+  <caption>Device Table</caption>
+  <thead>
+    <tr>
+      <th>Device ID</th>
+      <th>Name</th>
+      <th>Location</th>
+      <th>MAC Address</th>
+      <th>Start Date</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+  <tfoot>
+    <tr>
+      <td><input type="text" id="newDeviceId" placeholder="device ID"></td>
+      <td><input type="text" id="newDeviceName" placeholder="Name"></td>
+      <td><input type="text" id="newDeviceLocation" placeholder="Location"></td>
+      <td><input type="text" id="newDeviceMac" placeholder="MAC"></td>
+      <td><input type="date" id="newDeviceStartDate"></td>
+      <td><button onclick="addDevice()">เพิ่ม</button></td>
+    </tr>
+  </tfoot>
+</table>
+
+<h2>จัดการ Readings</h2>
+<table id="readingTable">
+  <caption>Readings Table</caption>
+  <thead>
+    <tr>
+      <th>Device ID</th>
+      <th>Temperature (°C)</th>
+      <th>Humidity (%)</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+  <tfoot>
+    <tr>
+      <td><input type="text" id="newReadingDeviceId" placeholder="device ID"></td>
+      <td><input type="number" id="newTemperature" placeholder="Temperature" step="0.1"></td>
+      <td><input type="number" id="newHumidity" placeholder="Humidity" step="0.1"></td>
+      <td><button onclick="addReading()">เพิ่ม</button></td>
+    </tr>
+  </tfoot>
+</table>
+
+<script>
+  // ข้อมูลเก็บในตัวแปร JS (local)
+  let devices = {
+    "device001": {
+      "name": "ห้องวิทย์",
+      "location": "ชั้น 2 อาคารวิทยาศาสตร์",
+      "mac": "AA:BB:CC:DD:EE:FF",
+      "start_date": "2025-07-08"
+    }
+  };
+
+  let readings = {
+    "device001": {
+      "temperature": 30.5,
+      "humidity": 70.1
+    }
+  };
+
+  // ฟังก์ชันแสดงตาราง devices
+  function showDevices() {
+    const tbody = document.querySelector("#deviceTable tbody");
+    tbody.innerHTML = "";
+
+    for (const id in devices) {
+      const d = devices[id];
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${id}</td>
+        <td contenteditable="true" onblur="editDevice('${id}', 'name', this.innerText)">${d.name}</td>
+        <td contenteditable="true" onblur="editDevice('${id}', 'location', this.innerText)">${d.location}</td>
+        <td contenteditable="true" onblur="editDevice('${id}', 'mac', this.innerText)">${d.mac}</td>
+        <td contenteditable="true" onblur="editDevice('${id}', 'start_date', this.innerText)">${d.start_date}</td>
+        <td><button onclick="deleteDevice('${id}')">ลบ</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  // ฟังก์ชันแก้ไข device
+  function editDevice(id, field, value) {
+    devices[id][field] = value.trim();
+  }
+
+  // ฟังก์ชันเพิ่ม device
+  function addDevice() {
+    const id = document.getElementById("newDeviceId").value.trim();
+    if (!id) {
+      alert("กรุณาใส่ Device ID");
+      return;
+    }
+    if (devices[id]) {
+      alert("Device ID นี้มีอยู่แล้ว");
+      return;
+    }
+    const name = document.getElementById("newDeviceName").value.trim();
+    const location = document.getElementById("newDeviceLocation").value.trim();
+    const mac = document.getElementById("newDeviceMac").value.trim();
+    const start_date = document.getElementById("newDeviceStartDate").value;
+
+    devices[id] = { name, location, mac, start_date };
+    clearDeviceForm();
+    showDevices();
+  }
+
+  function clearDeviceForm() {
+    document.getElementById("newDeviceId").value = "";
+    document.getElementById("newDeviceName").value = "";
+    document.getElementById("newDeviceLocation").value = "";
+    document.getElementById("newDeviceMac").value = "";
+    document.getElementById("newDeviceStartDate").value = "";
+  }
+
+  // ฟังก์ชันลบ device
+  function deleteDevice(id) {
+    if (confirm(`ลบ device '${id}' ใช่หรือไม่?`)) {
+      delete devices[id];
+      if(readings[id]) delete readings[id];
+      showDevices();
+      showReadings();
+    }
+  }
+
+  // ฟังก์ชันแสดงตาราง readings
+  function showReadings() {
+    const tbody = document.querySelector("#readingTable tbody");
+    tbody.innerHTML = "";
+
+    for (const id in readings) {
+      const r = readings[id];
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${id}</td>
+        <td contenteditable="true" onblur="editReading('${id}', 'temperature', this.innerText)">${r.temperature}</td>
+        <td contenteditable="true" onblur="editReading('${id}', 'humidity', this.innerText)">${r.humidity}</td>
+        <td><button onclick="deleteReading('${id}')">ลบ</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  // ฟังก์ชันแก้ไข readings
+  function editReading(id, field, value) {
+    let val = value.trim();
+    if (field === 'temperature' || field === 'humidity') {
+      val = parseFloat(val);
+      if (isNaN(val)) {
+        alert('กรุณาใส่ตัวเลขสำหรับ ' + field);
+        showReadings();
+        return;
+      }
+    }
+    readings[id][field] = val;
+  }
+
+  // ฟังก์ชันเพิ่ม readings
+  function addReading() {
+    const id = document.getElementById("newReadingDeviceId").value.trim();
+    if (!id) {
+      alert("กรุณาใส่ Device ID");
+      return;
+    }
+    if (!devices[id]) {
+      alert("Device ID นี้ไม่มีใน devices");
+      return;
+    }
+    if (readings[id]) {
+      alert("Readings ของ device นี้มีอยู่แล้ว");
+      return;
+    }
+
+    let temp = parseFloat(document.getElementById("newTemperature").value);
+    let hum = parseFloat(document.getElementById("newHumidity").value);
+
+    if (isNaN(temp) || isNaN(hum)) {
+      alert("กรุณาใส่ค่า Temperature และ Humidity ให้ถูกต้อง");
+      return;
+    }
+
+    readings[id] = {
+      temperature: temp,
+      humidity: hum
+    };
+    clearReadingForm();
+    showReadings();
+  }
+
+  function clearReadingForm() {
+    document.getElementById("newReadingDeviceId").value = "";
+    document.getElementById("newTemperature").value = "";
+    document.getElementById("newHumidity").value = "";
+  }
+
+  // ฟังก์ชันลบ readings
+  function deleteReading(id) {
+    if (confirm(`ลบ readings ของ device '${id}' ใช่หรือไม่?`)) {
+      delete readings[id];
+      showReadings();
+    }
+  }
+
+  // เรียกแสดงตารางเมื่อโหลดหน้าเว็บ
+  showDevices();
+  showReadings();
+</script>
+
+</body>
+</html>
+```
+
+ถ้าต้องการปรับแต่งเพิ่มเติมบอกได้เลยนะครับ!
